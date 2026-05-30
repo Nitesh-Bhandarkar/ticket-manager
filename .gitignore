@@ -1,0 +1,28 @@
+# Maven build output
+target/
+*.class
+*.jar
+*.war
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Local config (contains secrets)
+src/main/resources/application-local.yml
+
+# Credentials
+credentials.json
+*.json.key
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node / Frontend (already has its own .gitignore)
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
