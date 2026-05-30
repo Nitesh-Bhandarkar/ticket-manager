@@ -18,8 +18,8 @@ ticket_manager/
 │   └── main/
 │       ├── java/com/ticketmanager/
 │       │   ├── config/              ← SecurityConfig, GmailConfig (conditional)
-│       │   ├── controller/          ← AuthController, TicketController, KnowledgeBaseController
-│       │   ├── dto/                 ← LoginRequest/Response, TicketDTO, ReplyRequest
+│       │   ├── controller/          ← AuthController, TicketController, KnowledgeBaseController, UserController
+│       │   ├── dto/                 ← LoginRequest/Response, TicketDTO, ReplyRequest, UserDTO
 │       │   ├── enums/               ← TicketStatus, TicketPriority, UserRole
 │       │   ├── model/               ← JPA entities: User, Ticket, TicketReply, KnowledgeBaseEntry
 │       │   ├── repository/          ← Spring Data JPA repositories
@@ -38,10 +38,10 @@ ticket_manager/
     ├── vite.config.ts               ← proxies /api → localhost:8080
     ├── tailwind.config.js
     └── src/
-        ├── api/                     ← client.ts (Axios+JWT), auth.ts, tickets.ts, knowledgeBase.ts
+        ├── api/                     ← client.ts (Axios+JWT), auth.ts, tickets.ts, knowledgeBase.ts, users.ts
         ├── components/              ← PrivateRoute, StatusBadge, SLABadge + ui/ (shadcn)
         ├── hooks/                   ← useAuth.ts
-        ├── pages/                   ← LoginPage, DashboardPage, TicketDetailPage, KnowledgeBasePage
+        ├── pages/                   ← LoginPage, DashboardPage, TicketDetailPage, KnowledgeBasePage, UsersPage
         └── types/                   ← index.ts (TypeScript types matching backend DTOs)
 ```
 
@@ -117,6 +117,9 @@ Roles (`ADMIN`/`AGENT`) are embedded in the JWT claim. `@PreAuthorize("hasRole('
 ### Single database for everything
 PostgreSQL with the `pgvector` extension will handle both relational data and vector similarity search for the knowledge base. Currently pgvector is not installed locally — install it via Docker (`pgvector/pgvector:pg16`) when implementing Phase 5.
 
+### Spring Security error dispatch — always permit /error
+`SecurityConfig` must include `.requestMatchers("/error").permitAll()`. Without it, any controller exception triggers a Spring Boot error forward to `/error`. The `JwtFilter` (an `OncePerRequestFilter`) skips re-execution on that error dispatch, so the security context is empty and Spring Security returns 403 instead of the real error (500, 404, etc.).
+
 ### Lombok version
 Must use Lombok **1.18.38** (configured in `pom.xml`). Earlier versions (including 1.18.36) crash with Java 25 due to `sun.misc.Unsafe.objectFieldOffset` changes. Harmless deprecation warnings on startup are expected.
 
@@ -144,8 +147,9 @@ Ticket statuses: `OPEN → IN_PROGRESS → RESOLVED → CLOSED`; can also transi
 | Method | Path                         | Role         | Notes                            |
 |--------|------------------------------|--------------|----------------------------------|
 | POST   | /api/auth/login              | Public       | Returns JWT                      |
+| GET    | /api/users                   | ADMIN        | List all users (id, email, name, role) |
 | GET    | /api/tickets                 | ADMIN        | All tickets                      |
-| GET    | /api/tickets/my              | ADMIN,AGENT  | Logged-in agent's tickets (TODO) |
+| GET    | /api/tickets/my              | ADMIN,AGENT  | Tickets assigned to the caller   |
 | GET    | /api/tickets/{id}            | ADMIN,AGENT  | Ticket detail                    |
 | PATCH  | /api/tickets/{id}/status     | ADMIN,AGENT  | Update status                    |
 | PATCH  | /api/tickets/{id}/assign     | ADMIN        | Assign to agent                  |
@@ -178,13 +182,13 @@ npx shadcn@latest add <name> # add a shadcn component
 | Phase | Description              | Status      |
 |-------|--------------------------|-------------|
 | 1     | Foundation               | Done        |
-| 2     | Auth & User Management   | Partial — login done, user CRUD pending |
+| 2     | Auth & User Management   | Partial — login + `GET /api/users` done; `POST /api/users` (create) pending |
 | 3     | Gmail Integration        | Stubbed     |
-| 4     | Ticket Lifecycle         | Partial — CRUD done, `/my` endpoint pending |
+| 4     | Ticket Lifecycle         | Partial — all read/write endpoints done; `/my` implemented; Gmail reply wired |
 | 5     | AI & Knowledge Base      | Stubbed     |
 | 6     | Email Pipeline           | Stubbed     |
 | 7     | Reporting API            | Not started |
-| 8     | Frontend                 | Partial — pages scaffolded, wired to API |
+| 8     | Frontend                 | Partial — all pages done (incl. admin-only `/users`); wired to API |
 | 9     | Testing & Production     | Not started |
 
 See `implementation-plan.md` for full task breakdown.

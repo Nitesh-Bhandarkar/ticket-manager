@@ -50,6 +50,12 @@ public class TicketService {
         return ticketRepository.findByAssignedAgentId(agentId);
     }
 
+    public List<Ticket> getTicketsByAgentEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(user -> ticketRepository.findByAssignedAgentId(user.getId()))
+                .orElse(List.of());
+    }
+
     public List<Ticket> getAllTickets() {
         return ticketRepository.findAll();
     }

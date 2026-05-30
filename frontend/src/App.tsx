@@ -4,6 +4,7 @@ import { LoginPage } from "@/pages/LoginPage"
 import { DashboardPage } from "@/pages/DashboardPage"
 import { TicketDetailPage } from "@/pages/TicketDetailPage"
 import { KnowledgeBasePage } from "@/pages/KnowledgeBasePage"
+import { UsersPage } from "@/pages/UsersPage"
 import { PrivateRoute } from "@/components/PrivateRoute"
 
 function Layout({ children }: { children: React.ReactNode }) {
@@ -34,6 +35,18 @@ function Layout({ children }: { children: React.ReactNode }) {
           >
             Knowledge Base
           </NavLink>
+          {user?.role === "ADMIN" && (
+            <NavLink
+              to="/users"
+              className={({ isActive }) =>
+                isActive
+                  ? "text-sm font-medium px-3 py-2 rounded-md bg-accent text-accent-foreground"
+                  : "text-sm text-muted-foreground px-3 py-2 rounded-md hover:bg-accent/50 hover:text-foreground transition-colors"
+              }
+            >
+              Users
+            </NavLink>
+          )}
         </nav>
         <div className="flex items-center gap-3">
           <span className="text-xs text-muted-foreground hidden sm:block">{user?.email}</span>
@@ -85,6 +98,16 @@ export default function App() {
               <PrivateRoute>
                 <Layout>
                   <KnowledgeBasePage />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <PrivateRoute roles={["ADMIN"]}>
+                <Layout>
+                  <UsersPage />
                 </Layout>
               </PrivateRoute>
             }

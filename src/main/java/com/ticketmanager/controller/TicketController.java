@@ -45,8 +45,7 @@ public class TicketController {
     @GetMapping("/my")
     @PreAuthorize("hasAnyRole('ADMIN', 'AGENT')")
     public ResponseEntity<List<Ticket>> getMyTickets(@AuthenticationPrincipal UserDetails principal) {
-        // TODO: resolve agentId from principal email via UserRepository
-        throw new UnsupportedOperationException("Not implemented yet");
+        return ResponseEntity.ok(ticketService.getTicketsByAgentEmail(principal.getUsername()));
     }
 
     @GetMapping("/{id}")
