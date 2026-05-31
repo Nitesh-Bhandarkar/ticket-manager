@@ -2,6 +2,7 @@ package com.ticketmanager.model;
 
 import com.ticketmanager.enums.TicketPriority;
 import com.ticketmanager.enums.TicketStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -42,6 +43,10 @@ public class Ticket {
     @Column(nullable = false)
     private TicketStatus status;
 
+    @Column(name = "assigned_agent_id", insertable = false, updatable = false)
+    private UUID assignedAgentId;
+
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_agent_id")
     private User assignedAgent;
